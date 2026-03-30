@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>강우 하루 스케줄 🍼</title>
+    <style>
+        @font-face {
+            font-family: 'Noonnu';
+            src: url('font/NoonnuBasicGothicRegular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Noonnu', -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding-bottom: 60px;
+            color: #111;
+        }
+
+        /* ── 헤더 ── */
+        .hero {
+            padding: 48px 24px 32px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .hero h1 {
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .hero p {
+            font-size: 22px;
+            font-weight: 300;
+            color: #111;
+            letter-spacing: -0.3px;
+        }
+
+        /* ── 기상 입력 ── */
+        .wake-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 24px 24px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .wake-input .wi-label {
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .wake-input input[type="time"] {
+            font-family: 'Noonnu', sans-serif;
+            font-size: 48px;
+            font-weight: 300;
+            text-align: center;
+            border: none;
+            outline: none;
+            color: #111;
+            background: transparent;
+            letter-spacing: 2px;
+            width: 100%;
+        }
+
+        /* ── 요약 카드 ── */
+        .summary-card {
+            margin: 0;
+            padding: 28px 24px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .summary-title {
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .summary-list { display: flex; flex-direction: column; }
+        .summary-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; opacity: .7; }
+        .summary-time { font-size: 15px; font-weight: 400; color: #111; min-width: 140px; letter-spacing: .3px; }
+        .summary-label { font-size: 13px; color: #aaa; }
+
+        /* ── 스케줄 목록 ── */
+        .schedule { display: flex; flex-direction: column; }
+
+        /* ── 카드 공통 ── */
+        .card {
+            background: white;
+            padding: 22px 24px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .card.c-wake    { background: white; }
+        .card.c-feed    { background: white; }
+        .card.c-awake   { background: white; }
+        .card.c-nap     { background: white; }
+        .card.c-bedtime { background: white; }
+
+        .card-row { display: flex; align-items: flex-start; gap: 14px; }
+        .card-icon { flex-shrink: 0; display: flex; align-items: center; padding-top: 2px; }
+
+        .card-body { flex: 1; min-width: 0; }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .card-time {
+            font-size: 28px;
+            font-weight: 300;
+            color: #111;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+        .card-range { font-size: 12px; color: #bbb; margin-top: 5px; letter-spacing: .5px; }
+
+        /* ── 스테퍼 ── */
+        .stepper-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #efefef;
+        }
+        .stepper-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #bbb;
+        }
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            border: 1px solid #ddd;
+        }
+        .s-btn {
+            width: 40px; height: 40px;
+            border: none;
+            background: white;
+            font-size: 20px;
+            font-weight: 300;
+            color: #333;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1;
+            user-select: none;
+        }
+        .s-btn:active { background: #f5f5f5; }
+        .s-val {
+            font-size: 15px;
+            font-weight: 400;
+            min-width: 80px;
+            text-align: center;
+            color: #111;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: .5px;
+        }
+
+        /* ── 알림 ── */
+        .alert {
+            margin-top: 14px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: .5px;
+            line-height: 1.5;
+            border: 1px solid #ddd;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>KANGWOO DAILY SCHEDULE</h1>
+    <p>노강우 · 생후 4개월</p>
+</div>
+
+<div class="wake-input">
+    <div class="wi-label">기상 시간</div>
+    <input type="time" id="wakeTime" value="07:00" oninput="calc()">
+</div>
+
+<div class="summary-card" id="summary"></div>
+<div class="schedule" id="schedule"></div>
+
+<script>
+/*
+ * 공식:
+ *   수유 시간 = 이전 수유 + 수유 간격  (iv 독립 조정)
+ *   낮잠 시작 = 수유 시간 + 깨시       (awake 독립 조정)
+ *   낮잠 끝   = 낮잠 시작 + 낮잠       (nap 독립 조정)
+ *   세 값은 서로 관계 없음, 범위 제한 없음
+ */
+
+/* ── 상태 ── */
+const S = {
+    iv1:210, iv2:210, iv3:180, iv4:180,
+    awake1:120, awake2:120, awake3:120, awake4:180,
+    nap1:90, nap2:90, nap3:60,
+};
+
+/* ── 아이콘 ── */
+const ICO = {
+    wake:  `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 10 12 5 7 10"/><line x1="12" y1="19" x2="12" y2="5"/></svg>`,
+    feed:  `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4v3l2 2v12a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V7l2-2V2z"/><line x1="9" y1="11" x2="15" y2="11"/></svg>`,
+    awake: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5.6" y1="5.6" x2="7.4" y2="7.4"/><line x1="16.6" y1="16.6" x2="18.4" y2="18.4"/><line x1="5.6" y1="18.4" x2="7.4" y2="16.6"/><line x1="16.6" y1="7.4" x2="18.4" y2="5.6"/></svg>`,
+    nap:   `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+    bed:   `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="9" y1="17" x2="15" y2="17"/></svg>`,
+    sico:  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round">`,
+};
+
+/* ── 유틸 ── */
+const toMin  = s => { const [h,m]=s.split(':').map(Number); return h*60+m; };
+const toTime = m => `${String(Math.floor(m/60)%24).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+function dur(m) {
+    const h=Math.floor(m/60), mn=m%60;
+    if(!h) return `${mn}분`;
+    if(!mn) return `${h}시간`;
+    return `${h}시간 ${mn}분`;
+}
+
+function step(k, d) {
+    S[k] = Math.max(5, S[k] + d * 5);
+    calc();
+}
+
+/* ── 계산 ── */
+function calc() {
+    const ws = document.getElementById('wakeTime').value;
+    if (!ws) return;
+
+    // 수유 시간: 간격 기준 독립 계산
+    const f1 = toMin(ws);
+    const f2 = f1 + S.iv1;
+    const f3 = f2 + S.iv2;
+    const f4 = f3 + S.iv3;
+    const f5 = f4 + S.iv4;
+
+    // 깨시·낮잠 체인: 연속으로 이어짐 (낮잠N 끝 = 깨시N+1 시작)
+    const as1 = f1;               const ae1 = as1 + S.awake1;
+    const ns1 = ae1;              const ne1 = ns1 + S.nap1;
+    const as2 = ne1;              const ae2 = as2 + S.awake2;
+    const ns2 = ae2;              const ne2 = ns2 + S.nap2;
+    const as3 = ne2;              const ae3 = as3 + S.awake3;
+    const ns3 = ae3;              const ne3 = ns3 + S.nap3;
+    const as4 = ne3;              const ae4 = as4 + S.awake4;
+
+    const html = [
+        cardWake (toTime(f1), S.iv1),
+        cardAwake(1, toTime(as1), toTime(ae1), S.awake1, 'awake1'),
+        cardNap  (1, toTime(ns1), toTime(ne1), S.nap1,   'nap1'),
+        cardFeed (2, toTime(f2),  S.iv2),
+        cardAwake(2, toTime(as2), toTime(ae2), S.awake2, 'awake2'),
+        cardNap  (2, toTime(ns2), toTime(ne2), S.nap2,   'nap2'),
+        cardFeed (3, toTime(f3),  S.iv3),
+        cardAwake(3, toTime(as3), toTime(ae3), S.awake3, 'awake3'),
+        cardNap  (3, toTime(ns3), toTime(ne3), S.nap3,   'nap3'),
+        cardFeed (4, toTime(f4),  S.iv4),
+        cardAwake(4, toTime(as4), toTime(ae4), S.awake4, 'awake4', true),
+        cardBed  (toTime(f5)),
+    ].join('');
+
+    document.getElementById('schedule').innerHTML = html;
+
+    // ── 요약 ──
+    const si = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+    const siWake  = si(`<polyline points="17 10 12 5 7 10"/><line x1="12" y1="19" x2="12" y2="5"/>`);
+    const siFeed  = si(`<path d="M10 2h4v3l2 2v12a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V7l2-2V2z"/><line x1="9" y1="11" x2="15" y2="11"/>`);
+    const siAwake = si(`<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>`);
+    const siNap   = si(`<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`);
+    const siBed   = si(`<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="9" y1="17" x2="15" y2="17"/>`);
+
+    const rows = [
+        { icon: siWake,  time: toTime(f1),                        label:'기상 + 수유 1' },
+        { icon: siAwake, time:`${toTime(as1)} ~ ${toTime(ae1)}`,  label:'깨시 1' },
+        { icon: siNap,   time:`${toTime(ns1)} ~ ${toTime(ne1)}`,  label:'낮잠 1' },
+        { icon: siFeed,  time: toTime(f2),                        label:'수유 2' },
+        { icon: siAwake, time:`${toTime(as2)} ~ ${toTime(ae2)}`,  label:'깨시 2' },
+        { icon: siNap,   time:`${toTime(ns2)} ~ ${toTime(ne2)}`,  label:'낮잠 2' },
+        { icon: siFeed,  time: toTime(f3),                        label:'수유 3' },
+        { icon: siAwake, time:`${toTime(as3)} ~ ${toTime(ae3)}`,  label:'깨시 3' },
+        { icon: siNap,   time:`${toTime(ns3)} ~ ${toTime(ne3)}`,  label:'낮잠 3' },
+        { icon: siFeed,  time: toTime(f4),                        label:'수유 4' },
+        { icon: siAwake, time:`${toTime(as4)} ~ ${toTime(ae4)}`,  label:'깨시 4 · 취침준비' },
+        { icon: siBed,   time: toTime(f5),                        label:'수유 5 + 취침' },
+    ];
+    document.getElementById('summary').innerHTML = `
+        <div class="summary-title">📋 오늘 하루 요약</div>
+        <div class="summary-list">
+            ${rows.map(r=>`
+            <div class="summary-row">
+                <span class="summary-icon">${r.icon}</span>
+                <span class="summary-time">${r.time}</span>
+                <span class="summary-label">${r.label}</span>
+            </div>`).join('')}
+        </div>`;
+}
+
+/* ── 카드 렌더러 ── */
+
+function cardWake(time, iv) {
+    return `
+    <div class="card c-wake">
+      <div class="card-row">
+        <div class="card-icon">${ICO.wake}</div>
+        <div class="card-body">
+          <div class="card-title">기상 + 수유 1</div>
+          <div class="card-time">${time}</div>
+        </div>
+      </div>
+      <div class="stepper-row">
+        <span class="stepper-label">수유 간격</span>
+        <div class="stepper">
+          <button class="s-btn" onclick="step('iv1',-1)">−</button>
+          <span class="s-val">${dur(iv)}</span>
+          <button class="s-btn" onclick="step('iv1',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function cardFeed(num, time, iv) {
+    const isLast = num === 4;
+    return `
+    <div class="card c-feed">
+      <div class="card-row">
+        <div class="card-icon">${ICO.feed}</div>
+        <div class="card-body">
+          <div class="card-title">수유 ${num}</div>
+          <div class="card-time">${time}</div>
+        </div>
+      </div>
+      <div class="stepper-row">
+        <span class="stepper-label">수유 간격</span>
+        <div class="stepper">
+          <button class="s-btn" onclick="step('iv${num}',-1)">−</button>
+          <span class="s-val">${dur(iv)}</span>
+          <button class="s-btn" onclick="step('iv${num}',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function cardAwake(num, start, end, val, key, isBedPrep) {
+    const title = isBedPrep ? `깨시 ${num} · 취침 준비` : `깨시 ${num}`;
+    return `
+    <div class="card c-awake">
+      <div class="card-row">
+        <div class="card-icon">${ICO.awake}</div>
+        <div class="card-body">
+          <div class="card-title">${title}</div>
+          <div class="card-time">${start} ~ ${end}</div>
+          <div class="card-range">${dur(val)}</div>
+        </div>
+      </div>
+      <div class="stepper-row">
+        <span class="stepper-label">깨시 조정</span>
+        <div class="stepper">
+          <button class="s-btn" onclick="step('${key}',-1)">−</button>
+          <span class="s-val">${val}분</span>
+          <button class="s-btn" onclick="step('${key}',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function cardNap(num, start, end, val, key) {
+    return `
+    <div class="card c-nap">
+      <div class="card-row">
+        <div class="card-icon">${ICO.nap}</div>
+        <div class="card-body">
+          <div class="card-title">낮잠 ${num}</div>
+          <div class="card-time">${start} ~ ${end}</div>
+          <div class="card-range">${dur(val)}</div>
+        </div>
+      </div>
+      <div class="stepper-row">
+        <span class="stepper-label">낮잠 조정</span>
+        <div class="stepper">
+          <button class="s-btn" onclick="step('${key}',-1)">−</button>
+          <span class="s-val">${val}분</span>
+          <button class="s-btn" onclick="step('${key}',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function cardBed(time) {
+    return `
+    <div class="card c-bedtime">
+      <div class="card-row">
+        <div class="card-icon">${ICO.bed}</div>
+        <div class="card-body">
+          <div class="card-title">수유 5 + 취침</div>
+          <div class="card-time">${time}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+calc();
+</script>
+</body>
+</html>
